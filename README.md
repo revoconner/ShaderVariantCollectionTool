@@ -32,6 +32,24 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 
 ## Quick Start Tutorial
 
+1. **Open the tool**
+2. **Add a variant collection file**
+3. **Click on project collection tool button**
+4. **Click on material collector list button and add a list**
+5. **Click on collect materials button**
+6. **Click on manual keyword combinations button and add manual keyword combination into each separate line. You can use the checkbox to enable to disable the individual lines** optional
+7. **If you need to add more filter do so from the Variant filter button**
+8. **Click on material variant collection button**
+9. **Click on write to collection file button**
+10. **Profit?**
+
+
+
+
+## Features Overview
+
+### A little more detailed quick start
+
 ### Step 1: Open the Tool
 Navigate to **Tools → ShaderVariantCollectionTools → OpenWindow**
 
@@ -52,7 +70,6 @@ Navigate to **Tools → ShaderVariantCollectionTools → OpenWindow**
 4. Click **Material Variant Collection** to generate variants
 5. Click **Write to Collection File** to save
 
-## Features Overview
 
 ### Two Main Modes
 
