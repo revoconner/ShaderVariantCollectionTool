@@ -1,0 +1,27 @@
+{
+  "name": "com.rev.shadervariantcollectiontool",
+  "version": "1.0.0",
+  "displayName": "Shader Variant Collection Tools",
+  "description": "A comprehensive Unity tool for managing and collecting shader variants efficiently. Features material collection, keyword management, and manual runtime keyword combinations for optimized shader compilation.",
+  "unity": "2022.3",
+  "unityRelease": "0f1",
+  "documentationUrl": "https://github.com/revoconner/ShaderVariantCollectionTool",
+  "changelogUrl": "https://github.com/revoconner/ShaderVariantCollectionTool/releases",
+  "licensesUrl": "https://github.com/revoconner/ShaderVariantCollectionTool/blob/main/LICENSE",
+  "keywords": [
+    "shader",
+    "variant",
+    "collection",
+    "optimization",
+    "performance",
+    "urp",
+    "vr"
+  ],
+  "author": {
+    "name": "Rev",
+    "email": "oconnerrev@gmail.com",
+    "url": "https://github.com/revoconner"
+  },
+  "type": "tool",
+  "hideInEditor": false
+}
