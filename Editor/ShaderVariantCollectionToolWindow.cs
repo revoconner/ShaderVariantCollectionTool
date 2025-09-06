@@ -10,7 +10,7 @@ using Object = UnityEngine.Object;
 namespace ShaderVariantsCollectionTool
 {
 
-    public class ShaderVariantCollectionToolsWindow : EditorWindow
+    public class ShaderVariantCollectionToolWindow : EditorWindow
     {
         private enum FeatureViewState
         {
@@ -20,14 +20,14 @@ namespace ShaderVariantsCollectionTool
         }
 
         private static Vector2 cMinWindowSize = new Vector2(1200, 600);
-        private static ShaderVariantCollectionToolsWindow mwindow;
-        public static ShaderVariantCollectionToolsWindow Window
+        private static ShaderVariantCollectionToolWindow mwindow;
+        public static ShaderVariantCollectionToolWindow Window
         {
             get
             {
                 if (mwindow == null)
                 {
-                    mwindow = EditorWindow.GetWindow<ShaderVariantCollectionToolsWindow>("ShaderVariantCollectionTools");
+                    mwindow = EditorWindow.GetWindow<ShaderVariantCollectionToolWindow>("ShaderVariantCollectionTool");
                     mwindow.minSize = cMinWindowSize;
                 }
                 return mwindow;
@@ -58,6 +58,10 @@ namespace ShaderVariantsCollectionTool
         private FeatureViewState mCurrentFeatureState;
         private Vector2 mFeatureViewScrollViewPos = Vector2.zero;
         private Vector2 mWorkViewScrollViewPos = Vector2.zero;
+
+        // Panel resizing variables
+        private float mLeftPanelWidth = 400f;
+        private bool mResizing = false;
 
         private void ResetFeatureView()
         {
@@ -149,10 +153,8 @@ namespace ShaderVariantsCollectionTool
         private enum CollectionViewState
         {
             CollectorList,
-            MaterialFilter,
             VariantFilter,
             MaterialFrom,
-            KeywordFrom,
             ManualKeywords
         }
 
@@ -184,15 +186,15 @@ namespace ShaderVariantsCollectionTool
 
         #endregion
 
-        private GUIStyle mBlackStyle, mItemStyle;
+        private GUIStyle mBlackStyle, mItemStyle, mButtonStyle, mHighlightedButtonStyle, mSpecialButtonStyle, mLeftAlignedButtonStyle;
 
         private static int cBorderWidth = 10;
-        private static int cLeftWidth = 400;
         private static int cLeftTopHeight = 100;
         private static int cLeftMiddleHeight = 100;
-        private static int cMiddleWidth = 20;
+        private static int cMiddleWidth = 5;
+        private static int cButtonHeight = 28;
 
-        [MenuItem("Tools/ShaderVariantCollectionTools/OpenWindow", priority = 200)]
+        [MenuItem("Tools/ShaderVariantCollectionTool/OpenWindow", priority = 200)]
         public static void OpenWindow()
         {
             Window.Show();
@@ -200,11 +202,14 @@ namespace ShaderVariantsCollectionTool
 
         public void OnGUI()
         {
+            // Ensure styles are set up first
+            SetupStyle();
+
             EditorGUILayout.Space(cBorderWidth);
             GUILayout.BeginHorizontal(GUILayout.ExpandHeight(true), GUILayout.ExpandWidth(true));
 
             #region Left Section
-            EditorGUILayout.BeginVertical(GUILayout.Width(cLeftWidth));
+            EditorGUILayout.BeginVertical(GUILayout.Width(mLeftPanelWidth));
 
             #region Top Left Section - File Selection
             EditorGUILayout.BeginVertical(mBlackStyle, GUILayout.MinHeight(cLeftTopHeight));
@@ -221,7 +226,6 @@ namespace ShaderVariantsCollectionTool
             {
                 SaveObject(mCollectionFile);
                 mCollectionFile = newCollectionFile;
-
                 ResetShaderView();
             }
 
@@ -232,7 +236,6 @@ namespace ShaderVariantsCollectionTool
             {
                 SaveObject(mConfig);
                 mConfig = newConfig;
-
             }
 
             EditorGUILayout.EndVertical();
@@ -242,16 +245,16 @@ namespace ShaderVariantsCollectionTool
 
             #region Middle Left Section - Feature Selection
             EditorGUILayout.BeginVertical(mBlackStyle, GUILayout.MinHeight(cLeftMiddleHeight));
-            EditorGUILayout.LabelField("Feature Selection");
+            EditorGUILayout.LabelField("Functions");
             if (mCollectionFile != null)
             {
-                if (GUILayout.Button(new GUIContent("Quick Browse", "Quick browse variant collection file content"), GUILayout.ExpandWidth(true)))
+                if (GUILayout.Button(new GUIContent("Variant File Enhanced UI and Browser", "Quick browse variant collection file content"), mButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                 {
                     mCurrentFeatureState = FeatureViewState.ShaderVariantIndex;
                     ResetShaderView();
                 }
 
-                if (GUILayout.Button(new GUIContent("Project Collection Tool", "Automatically collect project build variants"), GUILayout.ExpandWidth(true)))
+                if (GUILayout.Button(new GUIContent("Automated Variant Collection", "Automatically collect shader build variants"), mButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                 {
                     mCurrentFeatureState = FeatureViewState.CollectionTool;
                     mFeatureViewScrollViewPos = Vector2.zero;
@@ -276,21 +279,36 @@ namespace ShaderVariantsCollectionTool
 
                     EditorGUILayout.BeginHorizontal();
                     mWillInsertShader = EditorGUILayout.ObjectField(mWillInsertShader, typeof(Shader)) as Shader;
-                    if (GUILayout.Button("Add"))
+                    if (GUILayout.Button("Add", mButtonStyle, GUILayout.Height(cButtonHeight)))
                     {
-                        if (!collectionMapper.HasShader(mWillInsertShader))
+                        if (mWillInsertShader != null && mCollectionFile != null)
                         {
-                            UndoShaderVariantCollectionTool();
-                            collectionMapper.AddShader(mWillInsertShader);
-                            if (mFilterShaderName != "" &&
-                                mWillInsertShader.name.IndexOf(mFilterShaderName, StringComparison.OrdinalIgnoreCase) >= 0 &&
-                                !mFilterShaders.Contains(mWillInsertShader))
+                            try
                             {
-                                mFilterShaders.Add(mWillInsertShader);
+                                if (!collectionMapper.HasShader(mWillInsertShader))
+                                {
+                                    UndoShaderVariantCollectionTool();
+                                    collectionMapper.AddShader(mWillInsertShader);
+                                    if (mFilterShaderName != "" &&
+                                        mWillInsertShader.name.IndexOf(mFilterShaderName, StringComparison.OrdinalIgnoreCase) >= 0 &&
+                                        !mFilterShaders.Contains(mWillInsertShader))
+                                    {
+                                        mFilterShaders.Add(mWillInsertShader);
+                                    }
+                                }
+                                else
+                                    ShowNotification(new GUIContent($"Shader:{mWillInsertShader} already exists in the current variant collection file"));
+                            }
+                            catch (System.Exception e)
+                            {
+                                Debug.LogError($"Error adding shader: {e.Message}");
+                                ShowNotification(new GUIContent($"Error adding shader: {e.Message}"));
                             }
                         }
                         else
-                            ShowNotification(new GUIContent($"Shader:{mWillInsertShader} already exists in the current variant collection file"));
+                        {
+                            ShowNotification(new GUIContent("Please select a shader and ensure collection file is loaded"));
+                        }
                     }
                     EditorGUILayout.EndHorizontal();
 
@@ -307,7 +325,7 @@ namespace ShaderVariantsCollectionTool
                     }
                     #endregion
 
-                    if (collectionMapper.shaders.Count > 0 && GUILayout.Button(new GUIContent("Clear", "Clear the variant collection file"), GUILayout.Width(cLeftWidth)))
+                    if (collectionMapper.shaders.Count > 0 && GUILayout.Button(new GUIContent("Clear", "Clear the variant collection file"), mButtonStyle, GUILayout.Width(mLeftPanelWidth), GUILayout.Height(cButtonHeight)))
                     {
                         if (EditorUtility.DisplayDialog("Confirm", "Are you sure you want to clear the file?", "Yes", "No"))
                         {
@@ -332,13 +350,13 @@ namespace ShaderVariantsCollectionTool
                     Color oriGUIColor = GUI.color;
                     foreach (var shader in displayList)
                     {
-                        EditorGUILayout.BeginHorizontal(GUILayout.Width(cLeftWidth));
+                        EditorGUILayout.BeginHorizontal(GUILayout.Width(mLeftPanelWidth));
 
                         if (shader == mShaderViewSelectedShader)
                             GUI.color = Color.green;
 
                         if (GUILayout.Button(new GUIContent(shader.name, shader.name),
-                                GUILayout.Width(cLeftWidth - 30)))
+                                GUILayout.Width(mLeftPanelWidth - 30)))
                         {
                             if (mShaderViewSelectedShader == shader)
                             {
@@ -369,7 +387,6 @@ namespace ShaderVariantsCollectionTool
                             mShaderViewSelectedShader = null;
                             mPassVariantCacheData.Clear();
                         }
-
                     }
 
                     EditorGUILayout.EndScrollView();
@@ -379,8 +396,17 @@ namespace ShaderVariantsCollectionTool
                 {
                     EditorGUILayout.LabelField("Collection View");
 
-                    mOverrideFile = EditorGUILayout.Toggle("Override source file content", mOverrideFile);
-                    if (GUILayout.Button(new GUIContent("One-Click Collect Variants", "One-Click Collect Variants"), GUILayout.ExpandWidth(true)))
+                    // Main workflow buttons in new order - left aligned
+                    if (GUILayout.Button(new GUIContent("[1] Set Materials for Variant Collection", "Choose what materials or paths are used to collect valid shader variants"), mLeftAlignedButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
+                    {
+                        mCollectionViewState = CollectionViewState.CollectorList;
+                        mSelectedInterfaceImplIndex = 0;
+                    }
+
+                    // Store original color
+                    Color originalColor = GUI.color;
+                    GUI.color = new Color(1f, 0.7f, 0.4f, 1f); // Pale orange
+                    if (GUILayout.Button(new GUIContent("[Express] One-Click Collect and Write", "One-Click Collect Valid Variants and Write to the Collection"), mSpecialButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                     {
                         if (EditorUtility.DisplayDialog("Confirm", "Start one-click variant collection?", "Yes", "No") && ConfirmOverride())
                         {
@@ -392,29 +418,30 @@ namespace ShaderVariantsCollectionTool
                                      && WriteCollectedVariantToFile();
                         }
                     }
-
-                    EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                    // Restore original color
+                    GUI.color = originalColor;
 
                     int materialCount = mConverter.GetMaterials().Count();
                     string materialCountStr = materialCount > 0 ? $"({materialCount})" : "";
-                    if (GUILayout.Button(new GUIContent("Collect Materials" + materialCountStr, "Collect files using active collectors"), GUILayout.ExpandWidth(true)))
+                    if (GUILayout.Button(new GUIContent("[2] Collect all Materials" + materialCountStr, "Collect files using active collectors"), mLeftAlignedButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                     {
                         var _ = CollectMaterial() && FilterMaterial();
                     }
 
-                    if (GUILayout.Button(new GUIContent("Manual Keyword Combinations", "Add runtime keyword combinations manually"), GUILayout.ExpandWidth(true)))
+                    GUIStyle manualKeywordsButtonStyle = mCollectionViewState == CollectionViewState.ManualKeywords ? mHighlightedButtonStyle : mLeftAlignedButtonStyle;
+                    if (GUILayout.Button(new GUIContent("[3] Add Manual Keyword Combinations (optional)", "Add runtime keyword combinations manually"), manualKeywordsButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                     {
                         mCollectionViewState = CollectionViewState.ManualKeywords;
                     }
 
                     int variantCount = mConverter.GetVariantCount();
                     string variantCountStr = variantCount > 0 ? $"({variantCount})" : "";
-                    if (GUILayout.Button(new GUIContent("Material Variant Collection" + variantCountStr, "Convert collected material keywords to valid variants"), GUILayout.ExpandWidth(true)))
+                    if (GUILayout.Button(new GUIContent("[4] Filter out Valid Shader Variants" + variantCountStr, "Convert collected material keywords to valid variants"), mLeftAlignedButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                     {
                         var _ = ProcessManualKeywordCombinations() && mConverter.CollectVariant() && FilterVariant();
                     }
 
-                    if (GUILayout.Button(new GUIContent("Write to Collection File", "Write collected variants to variant collection file"), GUILayout.ExpandWidth(true)))
+                    if (GUILayout.Button(new GUIContent("[5] Write to Shader Variant Collection File", "Write collected variants to variant collection file"), mLeftAlignedButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                     {
                         if (EditorUtility.DisplayDialog("Confirm", "Confirm writing to variant collection file?", "Yes", "No") && ConfirmOverride())
                         {
@@ -422,36 +449,27 @@ namespace ShaderVariantsCollectionTool
                         }
                     }
 
-                    EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                    EditorGUILayout.BeginHorizontal();
+                    mOverrideFile = EditorGUILayout.Toggle(mOverrideFile, GUILayout.Width(20));
+                    EditorGUILayout.LabelField("Override Variant Collection File", GUILayout.ExpandWidth(true));
+                    EditorGUILayout.EndHorizontal();
 
-                    if (GUILayout.Button(new GUIContent("Material Collector List", "Material collectors in current config"), GUILayout.ExpandWidth(true)))
-                    {
-                        mCollectionViewState = CollectionViewState.CollectorList;
-                        mSelectedInterfaceImplIndex = 0;
-                    }
+                    EditorGUILayout.Space(20);
+                    EditorGUILayout.LabelField("Filters", EditorStyles.boldLabel);
 
-                    if (GUILayout.Button(new GUIContent("Material Filter", "Filter collected materials by conditions"), GUILayout.ExpandWidth(true)))
-                    {
-                        mCollectionViewState = CollectionViewState.MaterialFilter;
-                        mSelectedInterfaceImplIndex = 0;
-                    }
-
-                    if (GUILayout.Button(new GUIContent("Variant Filter", "Filter collected variants by conditions"), GUILayout.ExpandWidth(true)))
+                    // These buttons remain center-aligned as requested
+                    GUIStyle variantFilterButtonStyle = mCollectionViewState == CollectionViewState.VariantFilter ? mHighlightedButtonStyle : mButtonStyle;
+                    if (GUILayout.Button(new GUIContent("Variant Filter", "Filter collected variants by conditions"), variantFilterButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                     {
                         mCollectionViewState = CollectionViewState.VariantFilter;
                         mSelectedInterfaceImplIndex = 0;
                     }
 
-                    if (GUILayout.Button(new GUIContent("Material Source Check", "Find which collector collected this material"), GUILayout.ExpandWidth(true)))
+                    GUIStyle materialFromButtonStyle = mCollectionViewState == CollectionViewState.MaterialFrom ? mHighlightedButtonStyle : mButtonStyle;
+                    if (GUILayout.Button(new GUIContent("Material Source Check", "Find which collector collected this material"), materialFromButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                     {
                         mCollectionViewState = CollectionViewState.MaterialFrom;
                     }
-
-                    if (mConverter.GetMaterials().Count() > 0 && GUILayout.Button(new GUIContent("Keyword Source Check", "Find which material contains this keyword"), GUILayout.ExpandWidth(true)))
-                    {
-                        mCollectionViewState = CollectionViewState.KeywordFrom;
-                    }
-
                 }
             }
 
@@ -461,14 +479,34 @@ namespace ShaderVariantsCollectionTool
             EditorGUILayout.EndVertical();
             #endregion
 
-            #region Middle Separator
-            EditorGUILayout.BeginVertical(GUILayout.Width(cMiddleWidth));
-            EditorGUILayout.Space(10);
-            EditorGUILayout.EndVertical();
+            #region Resizable Separator
+            Rect separatorRect = GUILayoutUtility.GetRect(cMiddleWidth, position.height - cBorderWidth * 2, GUILayout.Width(cMiddleWidth));
+            EditorGUIUtility.AddCursorRect(separatorRect, MouseCursor.ResizeHorizontal);
+
+            if (Event.current.type == EventType.MouseDown && separatorRect.Contains(Event.current.mousePosition))
+            {
+                mResizing = true;
+            }
+
+            if (mResizing)
+            {
+                mLeftPanelWidth = Event.current.mousePosition.x;
+                mLeftPanelWidth = Mathf.Clamp(mLeftPanelWidth, 300f, position.width - 400f);
+                Repaint();
+            }
+
+            if (Event.current.type == EventType.MouseUp)
+            {
+                mResizing = false;
+            }
+
+            // Draw separator line
+            Color separatorColor = EditorGUIUtility.isProSkin ? new Color(0.4f, 0.4f, 0.4f) : new Color(0.6f, 0.6f, 0.6f);
+            EditorGUI.DrawRect(new Rect(separatorRect.x + separatorRect.width / 2f - 1f, separatorRect.y, 2f, separatorRect.height), separatorColor);
             #endregion
 
             #region Right Section
-            int rightWidth = (int)(position.width - cLeftWidth - cMiddleWidth - 10);
+            float rightWidth = position.width - mLeftPanelWidth - cMiddleWidth - 10;
             EditorGUILayout.BeginVertical(mBlackStyle, GUILayout.MinWidth(rightWidth), GUILayout.MinHeight(position.height - cBorderWidth * 2));
 
             if (mCollectionFile != null)
@@ -476,7 +514,7 @@ namespace ShaderVariantsCollectionTool
                 #region Variant Browse
                 if (mCurrentFeatureState == FeatureViewState.ShaderVariantIndex && mShaderViewSelectedShader != null)
                 {
-                    if (GUILayout.Button("+"))
+                    if (GUILayout.Button("+", mButtonStyle, GUILayout.Height(cButtonHeight)))
                     {
                         OpenAddVariantWindow();
                     }
@@ -504,7 +542,7 @@ namespace ShaderVariantsCollectionTool
                         EditorGUILayout.LabelField("No variants collected for current shader");
                     }
 
-                    int keyowrdWidth = rightWidth - 20;
+                    int keyowrdWidth = (int)rightWidth - 20;
                     int minusWidth = 20;
 
                     bool removeVariant = false;
@@ -553,7 +591,7 @@ namespace ShaderVariantsCollectionTool
                                 EditorGUILayout.EndHorizontal();
                             }
 
-                            if (GUILayout.Button("+"))
+                            if (GUILayout.Button("+", mButtonStyle, GUILayout.Height(cButtonHeight)))
                             {
                                 OpenAddVariantWindow(cacheData.passType);
                             }
@@ -582,12 +620,6 @@ namespace ShaderVariantsCollectionTool
                         DrawInterfaceList<IMaterialCollector>("Material Collector", rightWidth);
                     }
                     #endregion
-                    #region Material Filter
-                    else if (mCollectionViewState == CollectionViewState.MaterialFilter)
-                    {
-                        DrawInterfaceList<IMaterialFilter>("Material Filter", rightWidth);
-                    }
-                    #endregion
                     #region Variant Filter
                     else if (mCollectionViewState == CollectionViewState.VariantFilter)
                     {
@@ -613,7 +645,7 @@ namespace ShaderVariantsCollectionTool
                                 EditorGUILayout.LabelField("From Collectors:");
                                 foreach (IMaterialCollector collector in materialFrom)
                                 {
-                                    if (GUILayout.Button(collector.name))
+                                    if (GUILayout.Button(collector.name, mButtonStyle, GUILayout.Height(cButtonHeight)))
                                     {
                                         Selection.activeObject = collector;
                                         EditorGUIUtility.PingObject(collector);
@@ -631,7 +663,7 @@ namespace ShaderVariantsCollectionTool
                         EditorGUILayout.LabelField("Each line is a separate combination. Separate keywords with spaces.");
                         EditorGUILayout.Space();
 
-                        if (GUILayout.Button("Add New Combination"))
+                        if (GUILayout.Button("Add New Combination", mButtonStyle, GUILayout.Height(cButtonHeight)))
                         {
                             mManualKeywordCombinations.Add(new ManualKeywordCombination());
                         }
@@ -652,7 +684,7 @@ namespace ShaderVariantsCollectionTool
 
                             mManualKeywordCombinations[i].keywords = EditorGUILayout.TextField(mManualKeywordCombinations[i].keywords, GUILayout.ExpandWidth(true));
 
-                            if (GUILayout.Button("Remove", GUILayout.Width(60)))
+                            if (GUILayout.Button("Remove", mButtonStyle, GUILayout.Width(60), GUILayout.Height(cButtonHeight)))
                             {
                                 toRemove = mManualKeywordCombinations[i];
                             }
@@ -672,7 +704,7 @@ namespace ShaderVariantsCollectionTool
                             EditorGUILayout.Space();
                             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-                            if (GUILayout.Button("Clear All Combinations"))
+                            if (GUILayout.Button("Clear All Combinations", mButtonStyle, GUILayout.Height(cButtonHeight)))
                             {
                                 if (EditorUtility.DisplayDialog("Confirm", "Clear all manual keyword combinations?", "Yes", "No"))
                                 {
@@ -682,41 +714,6 @@ namespace ShaderVariantsCollectionTool
                         }
                     }
                     #endregion
-                    #region Keyword Source
-                    else if (mCollectionViewState == CollectionViewState.KeywordFrom)
-                    {
-                        Shader newTestShader = EditorGUILayout.ObjectField("Limit to Shader (optional)", mTestShader, typeof(Shader)) as Shader;
-                        string newTestKeyword = EditorGUILayout.TextField("Keyword to Check", mTestKeyword);
-
-                        if (newTestShader != mTestShader || newTestKeyword != mTestKeyword)
-                        {
-                            mTestShader = newTestShader;
-                            mTestKeyword = newTestKeyword;
-                            mTestKeywordScrollViewPos = Vector2.zero;
-                            mKeywordFromMaterialList.Clear();
-
-                            if (mTestKeyword != "")
-                                mConverter.GetKeywordFromMaterial(mTestKeyword, mKeywordFromMaterialList, mTestShader);
-                        }
-
-                        if (mTestKeyword != "" && mKeywordFromMaterialList.Count() == 0)
-                            EditorGUILayout.LabelField("No materials with this keyword");
-                        else if (mKeywordFromMaterialList.Count() > 0)
-                        {
-                            mTestKeywordScrollViewPos = EditorGUILayout.BeginScrollView(mTestKeywordScrollViewPos);
-                            foreach (Material mat in mKeywordFromMaterialList)
-                            {
-                                if (GUILayout.Button(mat.name))
-                                {
-                                    Selection.activeObject = mat;
-                                    EditorGUIUtility.PingObject(mat);
-                                }
-                            }
-                            EditorGUILayout.EndScrollView();
-                        }
-                    }
-                    #endregion
-
                 }
                 #endregion
             }
@@ -753,7 +750,7 @@ namespace ShaderVariantsCollectionTool
                 #region Add Object
                 EditorGUILayout.BeginHorizontal();
                 mSelectedInterfaceImplIndex = EditorGUILayout.Popup(mSelectedInterfaceImplIndex, implements.Select(i => i.Name).ToArray(), GUILayout.Width(uiWidth * 0.7f));
-                if (GUILayout.Button($"Add {objectName}", GUILayout.Width(uiWidth * 0.3f)))
+                if (GUILayout.Button($"Add {objectName}", mButtonStyle, GUILayout.Width(uiWidth * 0.3f), GUILayout.Height(cButtonHeight)))
                 {
                     T newObject = CreateInstance(implements[mSelectedInterfaceImplIndex]) as T;
                     newObject.name = implements[mSelectedInterfaceImplIndex].Name;
@@ -780,7 +777,7 @@ namespace ShaderVariantsCollectionTool
                     ToggleObject toggleObject = objectList[i];
 
                     EditorGUILayout.BeginHorizontal();
-                    if (GUILayout.Button("Delete"))
+                    if (GUILayout.Button("Delete", mButtonStyle, GUILayout.Height(cButtonHeight)))
                     {
                         Undo.RecordObject(mConfig, "Impl object remove");
                         mConfig.RemoveToggleObject(toggleObject);
@@ -798,12 +795,12 @@ namespace ShaderVariantsCollectionTool
                         toggleObject.obj.name = newName;
                     }
 
-                    if (i != 0 && GUILayout.Button("Up", GUILayout.Width(40)))
+                    if (i != 0 && GUILayout.Button("Up", mButtonStyle, GUILayout.Width(40), GUILayout.Height(cButtonHeight)))
                     {
                         Undo.RecordObject(mConfig, "Swap object list");
                         (objectList[i - 1], objectList[i]) = (objectList[i], objectList[i - 1]);
                     }
-                    if (i != objectList.Count - 1 && GUILayout.Button("Down", GUILayout.Width(50)))
+                    if (i != objectList.Count - 1 && GUILayout.Button("Down", mButtonStyle, GUILayout.Width(50), GUILayout.Height(cButtonHeight)))
                     {
                         Undo.RecordObject(mConfig, "Swap object list");
                         (objectList[i], objectList[i + 1]) = (objectList[i + 1], objectList[i]);
@@ -988,27 +985,65 @@ namespace ShaderVariantsCollectionTool
             if (mBlackStyle == null)
             {
                 Color backColor = EditorGUIUtility.isProSkin ? new Color(0.18f, 0.18f, 0.18f) : new Color(0.7f, 0.7f, 0.7f);
-                Texture2D _blackTexture;
-                _blackTexture = MakeTex(4, 4, backColor);
+                Texture2D _blackTexture = MakeTex(4, 4, backColor);
                 _blackTexture.hideFlags = HideFlags.DontSave;
                 mBlackStyle = new GUIStyle();
                 mBlackStyle.normal.background = _blackTexture;
+                mBlackStyle.padding = new RectOffset(5, 5, 5, 5);
             }
 
             if (mItemStyle == null)
             {
                 Color itemColor = EditorGUIUtility.isProSkin ? new Color(0.3f, 0.3f, 0.3f) : new Color(0.9f, 0.9f, 0.9f);
-                Texture2D _itemColorTexture;
-                _itemColorTexture = MakeTex(4, 4, itemColor);
+                Texture2D _itemColorTexture = MakeTex(4, 4, itemColor);
                 _itemColorTexture.hideFlags = HideFlags.DontSave;
                 mItemStyle = new GUIStyle();
                 mItemStyle.normal.background = _itemColorTexture;
+            }
+
+            if (mButtonStyle == null)
+            {
+                mButtonStyle = new GUIStyle(GUI.skin.button);
+                mButtonStyle.alignment = TextAnchor.MiddleCenter;
+                mButtonStyle.padding = new RectOffset(10, 10, 5, 5);
+            }
+
+            if (mLeftAlignedButtonStyle == null)
+            {
+                mLeftAlignedButtonStyle = new GUIStyle(GUI.skin.button);
+                mLeftAlignedButtonStyle.alignment = TextAnchor.MiddleLeft;
+                mLeftAlignedButtonStyle.padding = new RectOffset(10, 10, 5, 5);
+            }
+
+            if (mHighlightedButtonStyle == null)
+            {
+                mHighlightedButtonStyle = new GUIStyle(GUI.skin.button);
+                mHighlightedButtonStyle.alignment = TextAnchor.MiddleCenter;
+                mHighlightedButtonStyle.padding = new RectOffset(10, 10, 5, 5);
+
+                Color cyanColor = new Color(0f, 0.8f, 0.8f, 0.4f);
+                Texture2D highlightTexture = MakeTex(4, 4, cyanColor);
+                highlightTexture.hideFlags = HideFlags.DontSave;
+                mHighlightedButtonStyle.normal.background = highlightTexture;
+                mHighlightedButtonStyle.hover.background = highlightTexture;
+                mHighlightedButtonStyle.active.background = highlightTexture;
+                mHighlightedButtonStyle.focused.background = highlightTexture;
+            }
+
+            if (mSpecialButtonStyle == null)
+            {
+                mSpecialButtonStyle = new GUIStyle(GUI.skin.button);
+                mSpecialButtonStyle.alignment = TextAnchor.MiddleCenter;
+                mSpecialButtonStyle.padding = new RectOffset(10, 10, 5, 5);
+                mSpecialButtonStyle.fontStyle = FontStyle.Bold;
             }
         }
 
         private void CreateIfDefaultConfigIsNull()
         {
-            MonoScript ms = MonoScript.FromScriptableObject(new ShaderVariantCollectionToolConfig());
+            if (mConfig != null) return;
+
+            MonoScript ms = MonoScript.FromScriptableObject(CreateInstance<ShaderVariantCollectionToolConfig>());
             string scriptFilePath = AssetDatabase.GetAssetPath(ms);
             string scriptDirectoryPath = System.IO.Path.GetDirectoryName(scriptFilePath);
             string[] findResultGUID = AssetDatabase.FindAssets("t:ShaderVariantCollectionToolConfig", new string[] { scriptDirectoryPath });
@@ -1016,10 +1051,8 @@ namespace ShaderVariantsCollectionTool
             if (findResultGUID.Length == 0)
             {
                 ShaderVariantCollectionToolConfig newConfig = ScriptableObject.CreateInstance<ShaderVariantCollectionToolConfig>();
-
-                AssetDatabase.CreateAsset(newConfig, scriptDirectoryPath + "\\Default ShaderVariantCollection Tool Config.asset");
+                AssetDatabase.CreateAsset(newConfig, scriptDirectoryPath + "/Default ShaderVariantCollection Tool Config.asset");
                 AssetDatabase.SaveAssets();
-
                 mConfig = newConfig;
             }
             else
@@ -1031,13 +1064,13 @@ namespace ShaderVariantsCollectionTool
 
         public void Awake()
         {
-            SetupStyle();
             CreateIfDefaultConfigIsNull();
         }
 
         public void OnDisable()
         {
-            ShaderVariantCollectionAddVariantWindow.Window.Close();
+            if (ShaderVariantCollectionAddVariantWindow.Window != null)
+                ShaderVariantCollectionAddVariantWindow.Window.Close();
             SaveObject(mConfig);
         }
     }

@@ -157,7 +157,7 @@ namespace ShaderVariantsCollectionTool
                     }
                     else
                     {
-                        ShaderVariantCollectionToolsWindow.Window.UndoShaderVariantCollectionTool();
+                        ShaderVariantCollectionToolWindow.Window.UndoShaderVariantCollectionTool();
                         if (!mMapper.AddVariant(newVariant))
                         {
                             mState = State.Failure;
@@ -167,8 +167,8 @@ namespace ShaderVariantsCollectionTool
                         {
                             mState = State.Success;
                             mMessage = $"Successfully added variant <{mPassType}>[{keywordString}]";
-                            ShaderVariantCollectionToolsWindow.Window.RefreshPassKeywordMap(mShader);
-                            ShaderVariantCollectionToolsWindow.Window.Repaint();
+                            ShaderVariantCollectionToolWindow.Window.RefreshPassKeywordMap(mShader);
+                            ShaderVariantCollectionToolWindow.Window.Repaint();
                         }
                     }
                 }
