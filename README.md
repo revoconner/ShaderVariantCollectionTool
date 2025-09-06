@@ -6,7 +6,7 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 
 <img width="2624" height="1289" alt="image" src="https://github.com/user-attachments/assets/ca4f9271-3a6a-49a0-bd2d-9e3ede1ef14d" />
 
-<img width="352" height="634" alt="image" src="https://github.com/user-attachments/assets/eb179124-230f-4c0a-8d64-d2f004e168c4" />
+<img width="2619" height="1287" alt="image" src="https://github.com/user-attachments/assets/c0491335-5367-4927-bb9f-d2cb25cd1a07" />
 
 <img width="2614" height="1249" alt="image" src="https://github.com/user-attachments/assets/5702adb4-a6e4-4ef3-8647-b1d3f442551d" />
 
