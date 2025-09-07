@@ -1,6 +1,17 @@
 # Shader Variant Collection Tool
 A tool for managing and collecting shader variants efficiently and quickly, and also includes a better UI for the default Unity shader variant collection file editor (Inspector element)
 
+## Table of Contents
+- [Screenshots](#screenshots)
+- [Installation](#installation)
+- [Quick Start Tutorial](#quick-start-tutorial)
+- [Filters Guide](#filters-guide)
+- [Manual Keyword Combinations](#manual-keyword-combinations)
+- [Variant File Ehnanced UI and Browser](#variant-file-ehnanced-ui-and-browser)
+- [Best Practices](#best-practices)
+- [Troubleshooting](#troubleshooting)
+
+
 ## Screenshots
 <img width="352" height="634" alt="image" src="https://github.com/user-attachments/assets/b50ac067-ca68-4e39-97c8-40ef12ce69aa" />
 
@@ -11,14 +22,6 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 <img width="2614" height="1249" alt="image" src="https://github.com/user-attachments/assets/5702adb4-a6e4-4ef3-8647-b1d3f442551d" />
 
 
-## Table of Contents
-- [Installation](#installation)
-- [Quick Start Tutorial](#quick-start-tutorial)
-- [Filters Guide](#filters-guide)
-- [Manual Keyword Combinations](#manual-keyword-combinations)
-- [Variant File Ehnanced UI and Browser](#Variant-File-Ehnanced-UI-and-Browser)
-- [Best Practices](#best-practices)
-- [Troubleshooting](#troubleshooting)
 
 ## Installation
 
