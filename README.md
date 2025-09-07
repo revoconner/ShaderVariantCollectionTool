@@ -14,12 +14,9 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 ## Table of Contents
 - [Installation](#installation)
 - [Quick Start Tutorial](#quick-start-tutorial)
-- [Features Overview](#features-overview)
-- [Detailed Workflows](#detailed-workflows)
-- [Material Collectors Guide](#material-collectors-guide)
 - [Filters Guide](#filters-guide)
 - [Manual Keyword Combinations](#manual-keyword-combinations)
-- [Quick Browse Mode](#quick-browse-mode)
+- [Variant File Ehnanced UI and Browser](#Variant-File-Ehnanced-UI-and-Browser)
 - [Best Practices](#best-practices)
 - [Troubleshooting](#troubleshooting)
 
@@ -41,143 +38,14 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 
 1. **Open the tool**
 2. **Add a variant collection file**
-3. **Click on project collection tool button**
-4. **Click on material collector list button and add a list**
-5. **Click on collect materials button**
-6. **Click on manual keyword combinations button and add manual keyword combination into each separate line. You can use the checkbox to enable to disable the individual lines** optional
-7. **If you need to add more filter do so from the Variant filter button**
-8. **Click on material variant collection button**
-9. **Click on write to collection file button**
-10. **Profit?**
+3. **Follow the numbers on the button**
+4. **Profit?**
 
 
 
 
-## Features Overview
-
-### A little more detailed quick start
-
-### Step 1: Open the Tool
-Navigate to **Tools → ShaderVariantCollectionTools → OpenWindow**
-
-### Step 2: Create Required Files
-1. **Variant Collection File**: 
-   - Right-click in Project window
-   - Create → Shader → Shader Variant Collection
-   - Name it (e.g., "MyProjectVariants")
-   
-2. **Tool Configuration File**:
-   - Auto-created on first use as "Default ShaderVariantCollection Tool Config"
-   - Or create manually: Create → ShaderVariantCollectionTools → Create Config
-
-### Step 3: Basic Collection Workflow
-1. Select your Variant Collection File in the tool window
-2. Click **Project Collection Tool**
-3. Click **Collect Materials** to gather materials
-4. Click **Material Variant Collection** to generate variants
-5. Click **Write to Collection File** to save
-
-
-### Two Main Modes
-
-1. **Quick Browse Mode**
-   - View all shaders in your collection
-   - See variants per shader with pass types
-   - Add/remove variants manually
-   - Filter variants by keywords
-
-2. **Project Collection Tool**
-   - Automated material collection
-   - Manual keyword combination support
-   - Material and variant filtering
-   - Source tracking capabilities
-
-## Detailed Workflows
-
-### Complete Variant Collection Process
-
-#### 1. Setup Material Collectors
-Click **Material Collector List** and add collectors:
-
-- **Add Collector**: Select type from dropdown → Click "Add Material Collector"
-- **Configure**: Each collector appears with options
-- **Enable/Disable**: Toggle "Use" checkbox
-- **Reorder**: Use Up/Down buttons for priority
-
-#### 2. Collect Materials
-- Click **Collect Materials** button
-- Number in parentheses shows collected count
-- Progress bar shows collection status
-
-#### 3. Add Manual Keywords (Optional) this helps combination of runtime keywords you want to include without running the game and taking values from there
-For runtime-only keywords:
-1. Click **Manual Keyword Combinations**
-2. Click **Add New Combination**
-3. Enter keywords separated by spaces 
-4. Enable/disable with checkboxes
-
-#### 4. Generate Variants
-- Click **Material Variant Collection**
-- Processes both material keywords and manual combinations
-- Shows variant count in parentheses
-
-#### 5. Apply Filters (Optional)
-Configure filters before writing to file:
-- **Material Filter**: Filter which materials to process
-- **Variant Filter**: Filter which variants to keep
-
-#### 6. Save to File
-- Toggle **"Override source file content"** if replacing existing
-- Click **Write to Collection File**
-- Confirm in dialog
-
-### One-Click Collection
-For quick collection with current settings:
-1. Configure collectors and filters once
-2. Click **One-Click Collect Variants**
-3. Confirms and runs entire pipeline automatically
-
-## Material Collectors Guide
-
-### MaterialCollection_TotalMaterial
-Collects all materials from specified paths.
-
-**Configuration:**
-- **Path Mode**: 
-  - `Asset`: Use folder references (drag folders)
-  - `String`: Use string paths
-- **Include Paths**: Array of paths to search
-- **Folders**: Drag folders when in Asset mode
-
-**Example Setup:**
-```
-Path Mode: String
-Include Paths: ["Assets", "Packages"]
-```
-
-### MaterialCollection_SceneDependency
-Collects all materials referenced by scenes in Build Settings.
-
-**Configuration:**
-- **Collect Only Enabled**: Only process enabled scenes in Build Settings
-
-**Use Case:** Perfect for ensuring all scene materials have variants compiled.
-
-### MaterialCollection_AssignMaterial
-Manually specify exact materials to collect.
-
-**Configuration:**
-- **Materials**: Array of material references
-
-**Use Case:** Testing specific materials or adding materials missed by other collectors.
 
 ## Filters Guide
-
-### Material Filters
-
-#### TestMaterialFilter
-A template filter that passes all materials (does nothing).
-Use as a base for custom filters.
 
 
 
@@ -230,8 +98,7 @@ Remove variants of specific pass types.
 - Invalid combinations are silently skipped
 - Check console for processing results
 
-## Quick Browse Mode
-
+## Variant File Ehnanced UI and Browser
 ### Features
 - **Shader List**: All shaders in collection
 - **Filter**: Type to filter shader names
@@ -279,27 +146,6 @@ For selected shader:
 - Review variant count before writing to file
 
 
-### Essential Manual Keywords for Quest
-```
-// Foveated Rendering
-FOVEATED_RENDERING_NON_UNIFORM_RASTER
-
-// Mobile Optimizations
-SHADER_API_MOBILE
-SHADER_API_GLES30
-
-// VR Specific
-STEREO_INSTANCING_ON
-STEREO_MULTIVIEW_ON
-
-// Performance
-LOD_FADE_CROSSFADE
-SHADOWS_SOFT
-FOG_LINEAR
-
-// Occlusion
-META_OCCLUSION_ENABLED _ALPHATEST_ON
-```
 
 ### Recommended Filters
 1. Strip desktop-only passes:
@@ -327,12 +173,6 @@ META_OCCLUSION_ENABLED _ALPHATEST_ON
 - Check keyword spelling (case-sensitive)
 - Enable all quality levels before collection
 
-### Large Variant Count
-- Use VariantFilter_Shader to limit shaders
-- Strip unnecessary pass types
-- Review manual keyword combinations
-- Consider splitting into multiple collections
-
 ### Tool Window Issues
 - Window not opening: Check Unity version compatibility
 - Missing config file: Will auto-create on first use, reopen the tool
@@ -345,4 +185,4 @@ Original tool concept from Chinese Unity community - Soco
 
 ---
 
-*Last Updated: January 2025 - Version 1.0.0*
+*Last Updated: Sepetember 07, 2025 - Version 1.0.0*
