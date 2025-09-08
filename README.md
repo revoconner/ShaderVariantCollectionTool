@@ -13,7 +13,9 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 
 
 ## Screenshots
-<img width="352" height="634" alt="image" src="https://github.com/user-attachments/assets/b50ac067-ca68-4e39-97c8-40ef12ce69aa" />
+<img width="695" height="1216" alt="image" src="https://github.com/user-attachments/assets/1407d1e1-2143-4cfb-b98b-613a3b6d853a" />
+<br/>
+v1.1.0 update, added buttons to create the collection and config files directly from UI
 
 <img width="2624" height="1289" alt="image" src="https://github.com/user-attachments/assets/ca4f9271-3a6a-49a0-bd2d-9e3ede1ef14d" />
 
@@ -41,8 +43,9 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 
 1. **Open the tool**
 2. **Add a variant collection file**
-3. **Follow the numbers on the button**
-4. **Profit?**
+3. **Add a config file**
+4. **Follow the numbers on the button**
+5. **Profit?**
 
 
 
@@ -178,7 +181,7 @@ For selected shader:
 
 ### Tool Window Issues
 - Window not opening: Check Unity version compatibility
-- Missing config file: Will auto-create on first use, reopen the tool
+- Missing config file: Check the Assets/Settings folder, else use the button in the UI to create one.
 
 
 
@@ -189,3 +192,4 @@ Original tool concept from Chinese Unity community - Soco
 ---
 
 *Last Updated: Sepetember 07, 2025 - Version 1.0.0*
+*Last Updated: Sepetember 10, 2025 - Version 1.1.0*
