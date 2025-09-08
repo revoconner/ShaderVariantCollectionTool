@@ -13,7 +13,7 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 
 
 ## Screenshots
-<img width="695" height="1216" alt="image" src="https://github.com/user-attachments/assets/1407d1e1-2143-4cfb-b98b-613a3b6d853a" />
+<img width="347" height="608" alt="image" src="https://github.com/user-attachments/assets/1407d1e1-2143-4cfb-b98b-613a3b6d853a" />
 <br/>
 v1.1.0 update, added buttons to create the collection and config files directly from UI
 
