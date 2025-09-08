@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -189,7 +189,7 @@ namespace ShaderVariantsCollectionTool
         private GUIStyle mBlackStyle, mItemStyle, mButtonStyle, mHighlightedButtonStyle, mSpecialButtonStyle, mLeftAlignedButtonStyle;
 
         private static int cBorderWidth = 10;
-        private static int cLeftTopHeight = 100;
+        private static int cLeftTopHeight = 130;
         private static int cLeftMiddleHeight = 100;
         private static int cMiddleWidth = 5;
         private static int cButtonHeight = 28;
@@ -229,6 +229,12 @@ namespace ShaderVariantsCollectionTool
                 ResetShaderView();
             }
 
+            // Add Create New Collection button
+            if (GUILayout.Button("Create New Collection", mButtonStyle, GUILayout.Height(cButtonHeight)))
+            {
+                CreateNewCollection();
+            }
+
             EditorGUILayout.LabelField("Tool Configuration File:");
 
             var newConfig = EditorGUILayout.ObjectField(mConfig, typeof(ShaderVariantCollectionToolConfig), false) as ShaderVariantCollectionToolConfig;
@@ -236,6 +242,12 @@ namespace ShaderVariantsCollectionTool
             {
                 SaveObject(mConfig);
                 mConfig = newConfig;
+            }
+
+            // Add Create New Config button
+            if (GUILayout.Button("Create New Config", mButtonStyle, GUILayout.Height(cButtonHeight)))
+            {
+                CreateNewConfig();
             }
 
             EditorGUILayout.EndVertical();
@@ -1039,27 +1051,112 @@ namespace ShaderVariantsCollectionTool
             }
         }
 
+        private void CreateNewConfig()
+        {
+            // Ensure the Settings folder exists
+            string settingsPath = "Assets/Settings";
+            if (!AssetDatabase.IsValidFolder(settingsPath))
+            {
+                AssetDatabase.CreateFolder("Assets", "Settings");
+            }
+
+            // Find the next available config name
+            int configNumber = 1;
+            string configName;
+            string configPath;
+
+            do
+            {
+                configName = $"SVCTconfig{configNumber}";
+                configPath = $"{settingsPath}/{configName}.asset";
+                configNumber++;
+            } while (AssetDatabase.LoadAssetAtPath<ShaderVariantCollectionToolConfig>(configPath) != null);
+
+            // Create and save the new config
+            ShaderVariantCollectionToolConfig newConfig = ScriptableObject.CreateInstance<ShaderVariantCollectionToolConfig>();
+            AssetDatabase.CreateAsset(newConfig, configPath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // Set it as the current config
+            SaveObject(mConfig);
+            mConfig = newConfig;
+
+            Debug.Log($"Created new config file: {configPath}");
+            ShowNotification(new GUIContent($"Created {configName} in Assets/Settings"));
+
+            // Ping the newly created asset in the Project window
+            EditorGUIUtility.PingObject(newConfig);
+        }
+
+        private void CreateNewCollection()
+        {
+            // Ensure the Settings folder exists
+            string settingsPath = "Assets/Settings";
+            if (!AssetDatabase.IsValidFolder(settingsPath))
+            {
+                AssetDatabase.CreateFolder("Assets", "Settings");
+            }
+
+            // Find the next available collection name
+            int collectionNumber = 1;
+            string collectionName;
+            string collectionPath;
+
+            do
+            {
+                collectionName = $"SVCTcollectionFile{collectionNumber}";
+                collectionPath = $"{settingsPath}/{collectionName}.shadervariants";
+                collectionNumber++;
+            } while (AssetDatabase.LoadAssetAtPath<ShaderVariantCollection>(collectionPath) != null);
+
+            // Create and save the new collection
+            ShaderVariantCollection newCollection = new ShaderVariantCollection();
+            AssetDatabase.CreateAsset(newCollection, collectionPath);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            // Set it as the current collection
+            SaveObject(mCollectionFile);
+            mCollectionFile = newCollection;
+            ResetShaderView();
+
+            Debug.Log($"Created new collection file: {collectionPath}");
+            ShowNotification(new GUIContent($"Created {collectionName} in Assets/Settings"));
+
+            // Ping the newly created asset in the Project window
+            EditorGUIUtility.PingObject(newCollection);
+        }
+
         private void CreateIfDefaultConfigIsNull()
         {
             if (mConfig != null) return;
 
+            // First try to find any existing config in Assets/Settings
+            string settingsPath = "Assets/Settings";
+            if (AssetDatabase.IsValidFolder(settingsPath))
+            {
+                string[] configGuids = AssetDatabase.FindAssets("t:ShaderVariantCollectionToolConfig", new string[] { settingsPath });
+                if (configGuids.Length > 0)
+                {
+                    mConfig = AssetDatabase.LoadAssetAtPath<ShaderVariantCollectionToolConfig>(
+                        AssetDatabase.GUIDToAssetPath(configGuids[0]));
+                    return;
+                }
+            }
+
+            // If no config found in Settings, try the old location (package folder)
             MonoScript ms = MonoScript.FromScriptableObject(CreateInstance<ShaderVariantCollectionToolConfig>());
             string scriptFilePath = AssetDatabase.GetAssetPath(ms);
             string scriptDirectoryPath = System.IO.Path.GetDirectoryName(scriptFilePath);
             string[] findResultGUID = AssetDatabase.FindAssets("t:ShaderVariantCollectionToolConfig", new string[] { scriptDirectoryPath });
 
-            if (findResultGUID.Length == 0)
-            {
-                ShaderVariantCollectionToolConfig newConfig = ScriptableObject.CreateInstance<ShaderVariantCollectionToolConfig>();
-                AssetDatabase.CreateAsset(newConfig, scriptDirectoryPath + "/Default ShaderVariantCollection Tool Config.asset");
-                AssetDatabase.SaveAssets();
-                mConfig = newConfig;
-            }
-            else
+            if (findResultGUID.Length > 0)
             {
                 mConfig = AssetDatabase.LoadAssetAtPath<ShaderVariantCollectionToolConfig>(
                     AssetDatabase.GUIDToAssetPath(findResultGUID[0]));
             }
+            // Don't auto-create a config when installed as package
         }
 
         public void Awake()
