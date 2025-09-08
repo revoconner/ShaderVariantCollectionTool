@@ -190,6 +190,6 @@ For selected shader:
 Original tool concept from Chinese Unity community - Soco
 
 ---
-
-*Last Updated: Sepetember 07, 2025 - Version 1.0.0*
-*Last Updated: Sepetember 10, 2025 - Version 1.1.0*
+## Versions
+- *Last Updated: Sepetember 07, 2025 - Version 1.0.0*
+- *Last Updated: Sepetember 10, 2025 - Version 1.1.0*
