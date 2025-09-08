@@ -1,0 +1,16 @@
+# Ignore files that don't need to be in the Unity package
+LICENSE
+README.md
+.gitignore
+*.png
+*.jpg
+*.gif
+
+# Keep meta files for actual package content
+!*.meta
+!Editor/**
+!Editor.meta
+!package.json
+!package.json.meta
+!*.asmdef
+!*.asmdef.meta
