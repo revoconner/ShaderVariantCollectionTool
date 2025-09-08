@@ -1,6 +1,6 @@
 {
   "name": "com.rev.shadervariantcollectiontool",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "Shader Variant Collection Tools",
   "description": "A comprehensive Unity tool for managing and collecting shader variants efficiently. Features material collection, keyword management, and manual runtime keyword combinations for optimized shader compilation.",
   "unity": "2022.3",
@@ -24,4 +24,5 @@
   },
   "type": "tool",
   "hideInEditor": false
+
 }
