@@ -13,9 +13,7 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 
 
 ## Screenshots
-<img width="347" height="608" alt="image" src="https://github.com/user-attachments/assets/1407d1e1-2143-4cfb-b98b-613a3b6d853a" />
-<br/>
-v1.1.0 update, added buttons to create the collection and config files directly from UI
+<img width="347" height="608" alt="image" src="https://github.com/user-attachments/assets/266da9cf-38b0-4d00-a582-f926eb2c9e47" />
 
 <img width="2624" height="1289" alt="image" src="https://github.com/user-attachments/assets/ca4f9271-3a6a-49a0-bd2d-9e3ede1ef14d" />
 
@@ -23,6 +21,7 @@ v1.1.0 update, added buttons to create the collection and config files directly 
 
 <img width="2614" height="1249" alt="image" src="https://github.com/user-attachments/assets/5702adb4-a6e4-4ef3-8647-b1d3f442551d" />
 
+<img width="3817" height="1433" alt="image" src="https://github.com/user-attachments/assets/bd4dce8c-7d7d-454f-96d7-b4576e0aa6b9" />
 
 
 ## Installation
@@ -81,6 +80,13 @@ Remove variants of specific pass types.
 - `Meta`: Editor-only lightmapping
 - `MotionVectors`: Not needed for Quest
 - `ScriptableRenderPipelineBatching`: If not using SRP Batcher
+
+### Keywork Filters
+
+Added in v1.2.0 
+- Filters out individual keywords or combinations of keywords
+- If the checkbox on the right side is checked, all combinations including those keywords will be excluded
+- Takes precendent over MANUAL KEYWORD COMBINATION
 
 ## Manual Keyword Combinations
 
@@ -193,3 +199,4 @@ Original tool concept from Chinese Unity community - Soco
 ## Versions
 - *Last Updated: Sepetember 07, 2025 - Version 1.0.0*
 - *Last Updated: Sepetember 10, 2025 - Version 1.1.0*
+- *Last Updated: Sepetember 13, 2025 - Version 1.2.0*
