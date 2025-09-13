@@ -12,7 +12,7 @@ namespace ShaderVariantsCollectionTool
         public ScriptableObject obj;
         public bool use;
     }
-    
+
     //Solve nested list serialization problem
     [System.Serializable]
     public struct ListWrapper
@@ -20,7 +20,22 @@ namespace ShaderVariantsCollectionTool
         public List<ToggleObject> list;
         public ListWrapper(List<ToggleObject> list) => this.list = list;
     }
-    
+
+    [System.Serializable]
+    public class ManualKeywordCombination
+    {
+        public string keywords = "";
+        public bool enabled = true;
+    }
+
+    [System.Serializable]
+    public class KeywordFilter
+    {
+        public string keywords = "";
+        public bool enabled = true;
+        public bool includeAllCombinations = false;
+    }
+
     [CreateAssetMenu(menuName = "ShaderVariantCollectionTools/Create Config")]
     public class ShaderVariantCollectionToolConfig : ScriptableObject, ISerializationCallbackReceiver
     {
@@ -28,6 +43,13 @@ namespace ShaderVariantsCollectionTool
 
         [SerializeField] private List<string> mKeys = new List<string>();
         [SerializeField] private List<ListWrapper> mValues = new List<ListWrapper>();
+
+        // Manual keyword combinations storage
+        [SerializeField] private List<ManualKeywordCombination> mManualKeywordCombinations = new List<ManualKeywordCombination>();
+
+        // Keyword filters storage
+        [SerializeField] private List<KeywordFilter> mKeywordFilters = new List<KeywordFilter>();
+
         public void OnBeforeSerialize()
         {
             mKeys.Clear();
@@ -51,7 +73,7 @@ namespace ShaderVariantsCollectionTool
                 }
             }
         }
-        
+
         public List<ToggleObject> GetToggleObjectList(System.Type type)
         {
             if (!mToggleObjects.TryGetValue(type, out var list))
@@ -72,8 +94,56 @@ namespace ShaderVariantsCollectionTool
         {
             GetToggleObjectList(obj.obj.GetType().BaseType).Remove(obj);
         }
+
+        // Manual keyword combinations methods
+        public List<ManualKeywordCombination> GetManualKeywordCombinations()
+        {
+            return mManualKeywordCombinations;
+        }
+
+        public void AddManualKeywordCombination(ManualKeywordCombination combination)
+        {
+            mManualKeywordCombinations.Add(combination);
+            EditorUtility.SetDirty(this);
+        }
+
+        public void RemoveManualKeywordCombination(ManualKeywordCombination combination)
+        {
+            mManualKeywordCombinations.Remove(combination);
+            EditorUtility.SetDirty(this);
+        }
+
+        public void ClearManualKeywordCombinations()
+        {
+            mManualKeywordCombinations.Clear();
+            EditorUtility.SetDirty(this);
+        }
+
+        // Keyword filters methods
+        public List<KeywordFilter> GetKeywordFilters()
+        {
+            return mKeywordFilters;
+        }
+
+        public void AddKeywordFilter(KeywordFilter filter)
+        {
+            mKeywordFilters.Add(filter);
+            EditorUtility.SetDirty(this);
+        }
+
+        public void RemoveKeywordFilter(KeywordFilter filter)
+        {
+            mKeywordFilters.Remove(filter);
+            EditorUtility.SetDirty(this);
+        }
+
+        public void ClearKeywordFilters()
+        {
+            mKeywordFilters.Clear();
+            EditorUtility.SetDirty(this);
+        }
     }
-    
+
     public class ToolDefaultEditor : Editor
     {
         public override void OnInspectorGUI()

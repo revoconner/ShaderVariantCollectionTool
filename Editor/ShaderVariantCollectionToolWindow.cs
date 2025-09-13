@@ -154,6 +154,7 @@ namespace ShaderVariantsCollectionTool
         {
             CollectorList,
             VariantFilter,
+            KeywordFilter,
             MaterialFrom,
             ManualKeywords
         }
@@ -172,17 +173,11 @@ namespace ShaderVariantsCollectionTool
         private List<Material> mKeywordFromMaterialList = new List<Material>();
         private Vector2 mTestKeywordScrollViewPos = Vector2.zero;
 
-        // Manual keyword combinations
-        [Serializable]
-        private class ManualKeywordCombination
-        {
-            public string keywords = "";
-            public bool enabled = true;
-        }
-
-        [SerializeField]
-        private List<ManualKeywordCombination> mManualKeywordCombinations = new List<ManualKeywordCombination>();
+        // Manual keywords scroll position
         private Vector2 mManualKeywordsScrollPos = Vector2.zero;
+
+        // Keyword filters scroll position
+        private Vector2 mKeywordFiltersScrollPos = Vector2.zero;
 
         #endregion
 
@@ -477,6 +472,12 @@ namespace ShaderVariantsCollectionTool
                         mSelectedInterfaceImplIndex = 0;
                     }
 
+                    GUIStyle keywordFilterButtonStyle = mCollectionViewState == CollectionViewState.KeywordFilter ? mHighlightedButtonStyle : mButtonStyle;
+                    if (GUILayout.Button(new GUIContent("Keyword Filter", "Exclude specific keywords from variants"), keywordFilterButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
+                    {
+                        mCollectionViewState = CollectionViewState.KeywordFilter;
+                    }
+
                     GUIStyle materialFromButtonStyle = mCollectionViewState == CollectionViewState.MaterialFrom ? mHighlightedButtonStyle : mButtonStyle;
                     if (GUILayout.Button(new GUIContent("Material Source Check", "Find which collector collected this material"), materialFromButtonStyle, GUILayout.ExpandWidth(true), GUILayout.Height(cButtonHeight)))
                     {
@@ -638,6 +639,103 @@ namespace ShaderVariantsCollectionTool
                         DrawInterfaceList<IVariantFilter>("Variant Filter", rightWidth);
                     }
                     #endregion
+                    #region Keyword Filter
+                    else if (mCollectionViewState == CollectionViewState.KeywordFilter)
+                    {
+                        EditorGUILayout.LabelField("Keyword Filter", EditorStyles.boldLabel);
+                        EditorGUILayout.LabelField("Exclude specific keywords from shader variants.");
+                        EditorGUILayout.LabelField("Each line is a separate filter. Separate keywords with spaces.");
+                        EditorGUILayout.LabelField("For example if you write _ALPHATEST_ON it will exclude _ALPHATEST_ON by itself but if you check the checkbox it will include all comnination of _ALPHATEST_ON");
+                        EditorGUILayout.LabelField("This filter takes precedent over Manual Keyword Combination");
+                        EditorGUILayout.Space();
+
+                        // Check if config is null and show warning
+                        if (mConfig == null)
+                        {
+                            EditorGUILayout.LabelField("No configuration file selected. Please create or select a config file.", EditorStyles.helpBox);
+                        }
+                        else
+                        {
+                            if (GUILayout.Button("Add New Filter", mButtonStyle, GUILayout.Height(cButtonHeight)))
+                            {
+                                Undo.RecordObject(mConfig, "Add keyword filter");
+                                mConfig.AddKeywordFilter(new KeywordFilter());
+                            }
+
+                            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+                            var keywordFilters = mConfig.GetKeywordFilters();
+
+                            mKeywordFiltersScrollPos = EditorGUILayout.BeginScrollView(mKeywordFiltersScrollPos);
+
+                            KeywordFilter toRemove = null;
+
+                            for (int i = 0; i < keywordFilters.Count; i++)
+                            {
+                                EditorGUILayout.BeginHorizontal();
+
+                                EditorGUI.BeginChangeCheck();
+                                bool newEnabled = EditorGUILayout.Toggle(keywordFilters[i].enabled, GUILayout.Width(20));
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    Undo.RecordObject(mConfig, "Change keyword filter enabled");
+                                    keywordFilters[i].enabled = newEnabled;
+                                    EditorUtility.SetDirty(mConfig);
+                                }
+
+                                EditorGUILayout.LabelField($"Filter {i + 1}:", GUILayout.Width(60));
+
+                                EditorGUI.BeginChangeCheck();
+                                string newKeywords = EditorGUILayout.TextField(keywordFilters[i].keywords, GUILayout.ExpandWidth(true));
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    Undo.RecordObject(mConfig, "Change keyword filter keywords");
+                                    keywordFilters[i].keywords = newKeywords;
+                                    EditorUtility.SetDirty(mConfig);
+                                }
+
+                                EditorGUI.BeginChangeCheck();
+                                bool newIncludeAllCombinations = EditorGUILayout.Toggle("Include All Combinations", keywordFilters[i].includeAllCombinations, GUILayout.Width(160));
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    Undo.RecordObject(mConfig, "Change keyword filter include all combinations");
+                                    keywordFilters[i].includeAllCombinations = newIncludeAllCombinations;
+                                    EditorUtility.SetDirty(mConfig);
+                                }
+
+                                if (GUILayout.Button("Remove", mButtonStyle, GUILayout.Width(60), GUILayout.Height(cButtonHeight)))
+                                {
+                                    toRemove = keywordFilters[i];
+                                }
+
+                                EditorGUILayout.EndHorizontal();
+                            }
+
+                            if (toRemove != null)
+                            {
+                                Undo.RecordObject(mConfig, "Remove keyword filter");
+                                mConfig.RemoveKeywordFilter(toRemove);
+                            }
+
+                            EditorGUILayout.EndScrollView();
+
+                            if (keywordFilters.Count > 0)
+                            {
+                                EditorGUILayout.Space();
+                                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+                                if (GUILayout.Button("Clear All Filters", mButtonStyle, GUILayout.Height(cButtonHeight)))
+                                {
+                                    if (EditorUtility.DisplayDialog("Confirm", "Clear all keyword filters?", "Yes", "No"))
+                                    {
+                                        Undo.RecordObject(mConfig, "Clear all keyword filters");
+                                        mConfig.ClearKeywordFilters();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    #endregion
                     #region Material Source
                     else if (mCollectionViewState == CollectionViewState.MaterialFrom)
                     {
@@ -675,52 +773,79 @@ namespace ShaderVariantsCollectionTool
                         EditorGUILayout.LabelField("Each line is a separate combination. Separate keywords with spaces.");
                         EditorGUILayout.Space();
 
-                        if (GUILayout.Button("Add New Combination", mButtonStyle, GUILayout.Height(cButtonHeight)))
+                        // Check if config is null and show warning
+                        if (mConfig == null)
                         {
-                            mManualKeywordCombinations.Add(new ManualKeywordCombination());
+                            EditorGUILayout.LabelField("No configuration file selected. Please create or select a config file.", EditorStyles.helpBox);
                         }
-
-                        EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
-
-                        mManualKeywordsScrollPos = EditorGUILayout.BeginScrollView(mManualKeywordsScrollPos);
-
-                        ManualKeywordCombination toRemove = null;
-
-                        for (int i = 0; i < mManualKeywordCombinations.Count; i++)
+                        else
                         {
-                            EditorGUILayout.BeginHorizontal();
-
-                            mManualKeywordCombinations[i].enabled = EditorGUILayout.Toggle(mManualKeywordCombinations[i].enabled, GUILayout.Width(20));
-
-                            EditorGUILayout.LabelField($"Combination {i + 1}:", GUILayout.Width(100));
-
-                            mManualKeywordCombinations[i].keywords = EditorGUILayout.TextField(mManualKeywordCombinations[i].keywords, GUILayout.ExpandWidth(true));
-
-                            if (GUILayout.Button("Remove", mButtonStyle, GUILayout.Width(60), GUILayout.Height(cButtonHeight)))
+                            if (GUILayout.Button("Add New Combination", mButtonStyle, GUILayout.Height(cButtonHeight)))
                             {
-                                toRemove = mManualKeywordCombinations[i];
+                                Undo.RecordObject(mConfig, "Add manual keyword combination");
+                                mConfig.AddManualKeywordCombination(new ManualKeywordCombination());
                             }
 
-                            EditorGUILayout.EndHorizontal();
-                        }
-
-                        if (toRemove != null)
-                        {
-                            mManualKeywordCombinations.Remove(toRemove);
-                        }
-
-                        EditorGUILayout.EndScrollView();
-
-                        if (mManualKeywordCombinations.Count > 0)
-                        {
-                            EditorGUILayout.Space();
                             EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
-                            if (GUILayout.Button("Clear All Combinations", mButtonStyle, GUILayout.Height(cButtonHeight)))
+                            var manualKeywordCombinations = mConfig.GetManualKeywordCombinations();
+
+                            mManualKeywordsScrollPos = EditorGUILayout.BeginScrollView(mManualKeywordsScrollPos);
+
+                            ManualKeywordCombination toRemove = null;
+
+                            for (int i = 0; i < manualKeywordCombinations.Count; i++)
                             {
-                                if (EditorUtility.DisplayDialog("Confirm", "Clear all manual keyword combinations?", "Yes", "No"))
+                                EditorGUILayout.BeginHorizontal();
+
+                                EditorGUI.BeginChangeCheck();
+                                bool newEnabled = EditorGUILayout.Toggle(manualKeywordCombinations[i].enabled, GUILayout.Width(20));
+                                if (EditorGUI.EndChangeCheck())
                                 {
-                                    mManualKeywordCombinations.Clear();
+                                    Undo.RecordObject(mConfig, "Change manual keyword combination enabled");
+                                    manualKeywordCombinations[i].enabled = newEnabled;
+                                    EditorUtility.SetDirty(mConfig);
+                                }
+
+                                EditorGUILayout.LabelField($"Combination {i + 1}:", GUILayout.Width(100));
+
+                                EditorGUI.BeginChangeCheck();
+                                string newKeywords = EditorGUILayout.TextField(manualKeywordCombinations[i].keywords, GUILayout.ExpandWidth(true));
+                                if (EditorGUI.EndChangeCheck())
+                                {
+                                    Undo.RecordObject(mConfig, "Change manual keyword combination keywords");
+                                    manualKeywordCombinations[i].keywords = newKeywords;
+                                    EditorUtility.SetDirty(mConfig);
+                                }
+
+                                if (GUILayout.Button("Remove", mButtonStyle, GUILayout.Width(60), GUILayout.Height(cButtonHeight)))
+                                {
+                                    toRemove = manualKeywordCombinations[i];
+                                }
+
+                                EditorGUILayout.EndHorizontal();
+                            }
+
+                            if (toRemove != null)
+                            {
+                                Undo.RecordObject(mConfig, "Remove manual keyword combination");
+                                mConfig.RemoveManualKeywordCombination(toRemove);
+                            }
+
+                            EditorGUILayout.EndScrollView();
+
+                            if (manualKeywordCombinations.Count > 0)
+                            {
+                                EditorGUILayout.Space();
+                                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
+                                if (GUILayout.Button("Clear All Combinations", mButtonStyle, GUILayout.Height(cButtonHeight)))
+                                {
+                                    if (EditorUtility.DisplayDialog("Confirm", "Clear all manual keyword combinations?", "Yes", "No"))
+                                    {
+                                        Undo.RecordObject(mConfig, "Clear all manual keyword combinations");
+                                        mConfig.ClearManualKeywordCombinations();
+                                    }
                                 }
                             }
                         }
@@ -850,14 +975,27 @@ namespace ShaderVariantsCollectionTool
         {
             var variantFilters = mConfig.GetToggleObjectList(typeof(IVariantFilter))
                 .Where(vf => vf.use)
-                .Select(vf => vf.obj as IVariantFilter);
+                .Select(vf => vf.obj as IVariantFilter)
+                .ToList();
+
+            // Add keyword filter if config exists and has keyword filters
+            if (mConfig != null && mConfig.GetKeywordFilters().Any(kf => kf.enabled && !string.IsNullOrWhiteSpace(kf.keywords)))
+            {
+                var keywordFilter = CreateInstance<VariantFilter_Keyword>();
+                keywordFilter.SetConfig(mConfig);
+                variantFilters.Add(keywordFilter);
+            }
 
             return mConverter.FilterMaterial(variantFilters);
         }
 
         private bool ProcessManualKeywordCombinations()
         {
-            var enabledCombinations = mManualKeywordCombinations
+            if (mConfig == null)
+                return true;
+
+            var manualKeywordCombinations = mConfig.GetManualKeywordCombinations();
+            var enabledCombinations = manualKeywordCombinations
                 .Where(c => c.enabled && !string.IsNullOrWhiteSpace(c.keywords))
                 .Select(c => c.keywords.Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
                 .Where(keywords => keywords.Length > 0)
