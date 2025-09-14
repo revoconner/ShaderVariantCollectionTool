@@ -555,8 +555,8 @@ namespace ShaderVariantsCollectionTool
                         EditorGUILayout.LabelField("No variants collected for current shader");
                     }
 
-                    int keyowrdWidth = (int)rightWidth - 20;
-                    int minusWidth = 20;
+                    int keyowrdWidth = (int)rightWidth - 90;
+                    int minusWidth = 80;
 
                     bool removeVariant = false;
                     ShaderVariantCollection.ShaderVariant removedVariant = default;
@@ -596,7 +596,7 @@ namespace ShaderVariantsCollectionTool
                                 else
                                     EditorGUILayout.LabelField(string.Join(", ", variant.keywords), GUILayout.Width(keyowrdWidth));
 
-                                if (GUILayout.Button("-", GUILayout.Width(minusWidth)))
+                                if (GUILayout.Button("Remove", mButtonStyle, GUILayout.Width(minusWidth), GUILayout.Height(cButtonHeight)))
                                 {
                                     removeVariant = true;
                                     removedVariant = variant.Deserialize();
@@ -645,8 +645,6 @@ namespace ShaderVariantsCollectionTool
                         EditorGUILayout.LabelField("Keyword Filter", EditorStyles.boldLabel);
                         EditorGUILayout.LabelField("Exclude specific keywords from shader variants.");
                         EditorGUILayout.LabelField("Each line is a separate filter. Separate keywords with spaces.");
-                        EditorGUILayout.LabelField("For example if you write _ALPHATEST_ON it will exclude _ALPHATEST_ON by itself but if you check the checkbox it will include all comnination of _ALPHATEST_ON");
-                        EditorGUILayout.LabelField("This filter takes precedent over Manual Keyword Combination");
                         EditorGUILayout.Space();
 
                         // Check if config is null and show warning
