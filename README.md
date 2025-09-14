@@ -16,6 +16,7 @@ A tool for managing and collecting shader variants efficiently and quickly, and 
 <img width="347" height="608" alt="image" src="https://github.com/user-attachments/assets/266da9cf-38b0-4d00-a582-f926eb2c9e47" />
 
 <img width="2624" height="1289" alt="image" src="https://github.com/user-attachments/assets/ca4f9271-3a6a-49a0-bd2d-9e3ede1ef14d" />
+<img width="2228" height="1162" alt="image" src="https://github.com/user-attachments/assets/3385e815-6ebb-42a8-b78a-5e256a9ee914" />
 
 <img width="2619" height="1287" alt="image" src="https://github.com/user-attachments/assets/c0491335-5367-4927-bb9f-d2cb25cd1a07" />
 
@@ -200,3 +201,4 @@ Original tool concept from Chinese Unity community - Soco
 - *Last Updated: Sepetember 07, 2025 - Version 1.0.0*
 - *Last Updated: Sepetember 10, 2025 - Version 1.1.0*
 - *Last Updated: Sepetember 13, 2025 - Version 1.2.0*
+- *Last Updated: Sepetember 14, 2025 - Version 1.2.1*
